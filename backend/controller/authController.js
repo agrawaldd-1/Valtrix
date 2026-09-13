@@ -4,8 +4,12 @@ import jwt from "jsonwebtoken";
 
 export const registerUser = async (req, res) => {
     try {
-        const { fullname, email, password, enterpin, paymentpin } = req.body;
-        if (!fullname || !email || !password) {
+        const { fullname, firstName, lastName, email, password, enterpin, paymentpin, pin, paymentPin } = req.body;
+        const resolvedFullname = fullname || `${firstName || ""} ${lastName || ""}`.trim();
+        const resolvedEnterpin = enterpin || pin || 0;
+        const resolvedPaymentpin = paymentpin || paymentPin || 0;
+
+        if (!resolvedFullname || !email || !password) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
@@ -24,11 +28,11 @@ export const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
-            fullname,
+            fullname: resolvedFullname,
             email,
             password: hashedPassword,
-            enterpin: enterpin || 0,
-            paymentpin: paymentpin || 0,
+            enterpin: resolvedEnterpin,
+            paymentpin: resolvedPaymentpin,
         });
 
         return res.status(201).json({
