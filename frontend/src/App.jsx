@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import DemoModal from './components/DemoModal';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import Dashboard from './pages/Dashboard';
 
 function LandingPage() {
   const [demoModalOpen, setDemoModalOpen] = useState(false);
@@ -40,6 +41,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );
 }
