@@ -1,27 +1,60 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
-import Logo from '../components/Logo';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Lock,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { loginUser } from "../services/authServices.js";
+import Logo from "../components/Logo";
 
 export const SignIn = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    remember: true
+    email: "",
+    password: "",
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await loginUser(formData);
+
+      if (response.success) {
+        localStorage.setItem("token", response.token);
+        if (response.user) {
+          localStorage.setItem("user", JSON.stringify(response.user));
+        }
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        "Invalid email or password. Please try again."
+      );
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -34,6 +67,7 @@ export const SignIn = () => {
         <Link to="/" className="flex items-center">
           <Logo lightText={true} />
         </Link>
+
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white px-3.5 py-1.5 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 transition-all"
@@ -49,6 +83,7 @@ export const SignIn = () => {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               Sign In to Valtrix
             </h1>
+
             <p className="text-sm text-slate-400 mt-2">
               Enter your credentials to access your financial dashboard.
             </p>
@@ -63,15 +98,26 @@ export const SignIn = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Email or UPI ID
+                Email Address or UPI ID
               </label>
+
               <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 focus-within:border-blue-500 transition-colors">
-                <Mail size={16} className="text-blue-400 shrink-0" />
+                <Mail
+                  size={16}
+                  className="text-blue-400 shrink-0"
+                />
+
                 <input
                   type="text"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="darshan@valtrix"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      email: e.target.value,
+                    })
+                  }
+                  placeholder="you@example.com"
+                  autoComplete="email"
                   required
                   className="bg-transparent border-none outline-hidden text-white w-full text-sm placeholder:text-slate-500"
                 />
@@ -83,46 +129,50 @@ export const SignIn = () => {
                 <label className="block text-xs font-semibold text-slate-300">
                   Password
                 </label>
-                <a href="#forgot" className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors">
+
+                <a
+                  href="#forgot"
+                  className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                >
                   Forgot?
                 </a>
               </div>
+
               <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 focus-within:border-blue-500 transition-colors">
-                <Lock size={16} className="text-blue-400 shrink-0" />
+                <Lock
+                  size={16}
+                  className="text-blue-400 shrink-0"
+                />
+
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="••••••••"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      password: e.target.value,
+                    })
+                  }
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
                   required
                   className="bg-transparent border-none outline-hidden text-white w-full text-sm placeholder:text-slate-500"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-slate-400 hover:text-white cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.remember}
-                  onChange={(e) => setFormData({ ...formData, remember: e.target.checked })}
-                  className="rounded border-white/20 bg-white/10 text-blue-600 focus:ring-0"
-                />
-                <span>Remember this device</span>
-              </label>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_4px_18px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 transition-all disabled:opacity-70 cursor-pointer"
+              className="w-full mt-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_4px_18px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? (
                 <span>Signing In...</span>
@@ -137,8 +187,11 @@ export const SignIn = () => {
 
           <div className="mt-6 pt-5 border-t border-white/10 text-center">
             <p className="text-xs text-slate-400">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-semibold">
+              Don't have an account?{" "}
+              <Link
+                to="/signup"
+                className="text-blue-400 hover:text-blue-300 font-semibold"
+              >
                 Create Account
               </Link>
             </p>
@@ -152,7 +205,7 @@ export const SignIn = () => {
       </main>
 
       <footer className="py-5 text-center text-xs text-slate-500 relative z-10">
-        © 2024 Valtrix. All rights reserved.
+        © 2026 Valtrix. All rights reserved.
       </footer>
     </div>
   );
