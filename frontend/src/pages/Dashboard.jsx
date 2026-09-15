@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { getProfile } from '../services/authServices.js';
+import { getAllTransactionsApi } from '../services/transactionServices.js';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -168,6 +169,40 @@ export const Dashboard = () => {
     }
 
     fetchUserProfile(token);
+
+    getAllTransactionsApi()
+      .then((res) => {
+        if (res.success && res.transactions && res.transactions.length > 0) {
+          const currentUserId = user?._id || JSON.parse(cachedUser || '{}')?._id;
+          const mapped = res.transactions.map((tx) => {
+            const isDebit = String(tx.sender?._id || tx.sender) === String(currentUserId);
+            const otherParty = isDebit ? tx.receiver : tx.sender;
+            const otherName = otherParty?.fullname || (isDebit ? 'Transferred' : 'Received');
+            return {
+              id: tx._id || tx.transactionId,
+              name: otherName,
+              type: isDebit ? 'Instant Transfer' : 'Account Credit',
+              amount: `${isDebit ? '-' : '+'} ₹${Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+              time: new Date(tx.createdAt || Date.now()).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              isDebit,
+              initials: (otherName || 'TX').slice(0, 2).toUpperCase(),
+              bg: isDebit ? 'bg-rose-500/15' : 'bg-emerald-500/15',
+              text: isDebit ? 'text-rose-500' : 'text-emerald-500',
+              refId: tx.transactionId || 'TXN',
+              status: tx.status || 'Successful',
+            };
+          });
+          setTransactions(mapped);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching transactions:', err);
+      });
   }, [navigate]);
 
   const handleLogout = () => {
@@ -387,11 +422,12 @@ export const Dashboard = () => {
                 <button
                   key={item.name}
                   onClick={() => {
-                    setActiveTab(item.name);
                     if (item.name === 'Send Money') {
-                      setSendModalOpen(true);
+                      navigate('/send-money');
                     } else if (item.name === 'Scan & Pay') {
                       setScanModalOpen(true);
+                    } else {
+                      setActiveTab(item.name);
                     }
                   }}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left cursor-pointer ${
@@ -444,7 +480,7 @@ export const Dashboard = () => {
 
                 <div className="flex items-center gap-2.5">
                   <button
-                    onClick={() => setSendModalOpen(true)}
+                    onClick={() => navigate('/send-money')}
                     className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-600/25 hover:-translate-y-0.5 transition-all cursor-pointer"
                   >
                     <Send size={15} />
@@ -543,7 +579,7 @@ export const Dashboard = () => {
                   {/* Quick Action Buttons */}
                   <div className="grid grid-cols-3 gap-3">
                     <div
-                      onClick={() => setSendModalOpen(true)}
+                      onClick={() => navigate('/send-money')}
                       className="bg-slate-50 hover:bg-blue-50/50 rounded-xl p-3.5 sm:p-4 border border-slate-200 hover:border-blue-400 transition-all cursor-pointer group"
                     >
                       <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
@@ -950,7 +986,7 @@ export const Dashboard = () => {
                 </div>
 
                 <button
-                  onClick={() => setSendModalOpen(true)}
+                  onClick={() => navigate('/send-money')}
                   className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow transition-all cursor-pointer self-start sm:self-auto"
                 >
                   <Send size={14} /> Send Money
