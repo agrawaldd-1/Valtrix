@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./router/authRoutes.js";
+import transactionRoutes from "./router/transactionRoutes.js";
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/transactions", transactionRoutes);
 app.get("/", (req, res) => {
     res.send({
         success: true,
