@@ -175,3 +175,47 @@ export const getAllTransactions = async (req, res) => {
         });
     }
 };
+export const fetchTransaction = async (req, res) => {
+    try {
+        const { transactionId } = req.params;
+        const userId = req.user.id;
+
+        if (!transactionId) {
+            return res.status(400).json({
+                success: false,
+                message: "Transaction ID is required",
+            });
+        }
+
+        const transaction = await Transaction.findOne({
+            transactionId,
+            $or: [
+                { sender: userId },
+                { receiver: userId },
+            ],
+        })
+            .populate("sender", "fullname email accountNumber upiId")
+            .populate("receiver", "fullname email accountNumber upiId");
+
+        if (!transaction) {
+            return res.status(404).json({
+                success: false,
+                message: "Transaction not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Transaction fetched successfully",
+            transaction,
+        });
+
+    } catch (error) {
+        console.error("Fetch Transaction Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};

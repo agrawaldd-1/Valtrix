@@ -66,60 +66,8 @@ export const Dashboard = () => {
   // Transactions State & Filters
   const [txSearch, setTxSearch] = useState('');
   const [txFilter, setTxFilter] = useState('all'); // 'all' | 'debit' | 'credit'
-  const [transactions, setTransactions] = useState([
-    {
-      id: 1,
-      name: 'Rahul Sharma',
-      type: 'UPI Transfer',
-      amount: '- ₹2,000.00',
-      time: 'Today, 2:33 PM',
-      isDebit: true,
-      initials: 'RS',
-      bg: 'bg-amber-500/15',
-      text: 'text-amber-500',
-      refId: 'TXN983204918',
-      status: 'Successful'
-    },
-    {
-      id: 2,
-      name: 'Amit Kumar',
-      type: 'Account Credit',
-      amount: '+ ₹500.00',
-      time: 'Yesterday, 3:20 AM',
-      isDebit: false,
-      initials: 'AK',
-      bg: 'bg-emerald-500/15',
-      text: 'text-emerald-500',
-      refId: 'TXN849201934',
-      status: 'Successful'
-    },
-    {
-      id: 3,
-      name: 'Priya Singh',
-      type: 'Scan & Pay',
-      amount: '- ₹750.00',
-      time: '12 Sep, 3:37 PM',
-      isDebit: true,
-      initials: 'PS',
-      bg: 'bg-rose-500/15',
-      text: 'text-rose-500',
-      refId: 'TXN748291039',
-      status: 'Successful'
-    },
-    {
-      id: 4,
-      name: 'Neha Patel',
-      type: 'UPI Transfer',
-      amount: '+ ₹1,200.00',
-      time: '11 Sep, 3:00 PM',
-      isDebit: false,
-      initials: 'NP',
-      bg: 'bg-sky-500/15',
-      text: 'text-sky-500',
-      refId: 'TXN648392018',
-      status: 'Successful'
-    }
-  ]);
+  const [txLoading, setTxLoading] = useState(false);
+  const [transactions, setTransactions] = useState([]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -144,6 +92,49 @@ export const Dashboard = () => {
       });
   };
 
+  const mapTransactions = (rawTxs, currentUserId) => {
+    return rawTxs.map((tx) => {
+      const isDebit = String(tx.sender?._id || tx.sender) === String(currentUserId);
+      const otherParty = isDebit ? tx.receiver : tx.sender;
+      const otherName = otherParty?.fullname || (isDebit ? 'Transferred' : 'Received');
+      return {
+        id: tx._id || tx.transactionId,
+        name: otherName,
+        type: isDebit ? 'Instant Transfer' : 'Account Credit',
+        amount: `${isDebit ? '-' : '+'} ₹${Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+        time: new Date(tx.createdAt || Date.now()).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        isDebit,
+        initials: (otherName || 'TX').slice(0, 2).toUpperCase(),
+        bg: isDebit ? 'bg-rose-500/15' : 'bg-emerald-500/15',
+        text: isDebit ? 'text-rose-500' : 'text-emerald-500',
+        refId: tx.transactionId || 'TXN',
+        status: tx.status || 'Success',
+      };
+    });
+  };
+
+  const fetchTransactions = (currentUserId) => {
+    setTxLoading(true);
+    getAllTransactionsApi()
+      .then((res) => {
+        if (res.success && res.transactions) {
+          const uid = currentUserId || user?._id || JSON.parse(localStorage.getItem('user') || '{}')?._id;
+          setTransactions(mapTransactions(res.transactions, uid));
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching transactions:', err);
+      })
+      .finally(() => {
+        setTxLoading(false);
+      });
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -159,9 +150,12 @@ export const Dashboard = () => {
     }
 
     const cachedUser = localStorage.getItem('user');
+    let cachedUserId = null;
     if (cachedUser) {
       try {
-        setUser(JSON.parse(cachedUser));
+        const parsed = JSON.parse(cachedUser);
+        setUser(parsed);
+        cachedUserId = parsed._id;
         setLoading(false);
       } catch (e) {
         console.error(e);
@@ -169,40 +163,8 @@ export const Dashboard = () => {
     }
 
     fetchUserProfile(token);
-
-    getAllTransactionsApi()
-      .then((res) => {
-        if (res.success && res.transactions && res.transactions.length > 0) {
-          const currentUserId = user?._id || JSON.parse(cachedUser || '{}')?._id;
-          const mapped = res.transactions.map((tx) => {
-            const isDebit = String(tx.sender?._id || tx.sender) === String(currentUserId);
-            const otherParty = isDebit ? tx.receiver : tx.sender;
-            const otherName = otherParty?.fullname || (isDebit ? 'Transferred' : 'Received');
-            return {
-              id: tx._id || tx.transactionId,
-              name: otherName,
-              type: isDebit ? 'Instant Transfer' : 'Account Credit',
-              amount: `${isDebit ? '-' : '+'} ₹${Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
-              time: new Date(tx.createdAt || Date.now()).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
-              isDebit,
-              initials: (otherName || 'TX').slice(0, 2).toUpperCase(),
-              bg: isDebit ? 'bg-rose-500/15' : 'bg-emerald-500/15',
-              text: isDebit ? 'text-rose-500' : 'text-emerald-500',
-              refId: tx.transactionId || 'TXN',
-              status: tx.status || 'Successful',
-            };
-          });
-          setTransactions(mapped);
-        }
-      })
-      .catch((err) => {
-        console.error('Error fetching transactions:', err);
-      });
+    // Fetch transactions on initial load so Home tab recent list is populated
+    fetchTransactions(cachedUserId);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -426,6 +388,8 @@ export const Dashboard = () => {
                       navigate('/send-money');
                     } else if (item.name === 'Scan & Pay') {
                       setScanModalOpen(true);
+                    } else if (item.name === 'Transactions') {
+                      navigate('/transactions');
                     } else {
                       setActiveTab(item.name);
                     }
@@ -620,7 +584,7 @@ export const Dashboard = () => {
                         <span>Recent Transactions</span>
                       </span>
                       <button
-                        onClick={() => setActiveTab('Transactions')}
+                        onClick={() => navigate('/transactions')}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
                       >
                         View All
@@ -1047,7 +1011,12 @@ export const Dashboard = () => {
 
               {/* Transactions List */}
               <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-200">
-                {filteredTransactions.length === 0 ? (
+                {txLoading ? (
+                  <div className="p-12 text-center text-slate-400">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-slate-500">Loading transactions...</p>
+                  </div>
+                ) : filteredTransactions.length === 0 ? (
                   <div className="p-12 text-center text-slate-400">
                     <Clock size={36} className="mx-auto mb-2 text-slate-300" />
                     <p className="text-sm font-semibold">No transactions found</p>

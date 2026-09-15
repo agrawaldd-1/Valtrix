@@ -12,6 +12,7 @@ import SignUp from './pages/SignUp';
 import EnterPin from './pages/EnterPin';
 import Dashboard from './pages/Dashboard';
 import SendMoney from './pages/SendMoney';
+import Transactions from './pages/Transactions';
 
 function LandingPage() {
   const [demoModalOpen, setDemoModalOpen] = useState(false);
@@ -47,6 +48,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/send-money" element={<SendMoney />} />
       <Route path="/send" element={<SendMoney />} />
+      <Route path="/transactions" element={<Transactions />} />
     </Routes>
   );
 }

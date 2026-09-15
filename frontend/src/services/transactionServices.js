@@ -13,3 +13,8 @@ export const getAllTransactionsApi = async () => {
     const response = await api.get("/transactions");
     return response.data;
 };
+
+export const fetchTransactionApi = async (transactionId) => {
+    const response = await api.get(`/transactions/transaction/${transactionId}`);
+    return response.data;
+};
