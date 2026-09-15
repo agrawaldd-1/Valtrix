@@ -27,7 +27,11 @@ export const SignIn = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/dashboard");
+      if (sessionStorage.getItem("isPinVerified") === "true") {
+        navigate("/dashboard");
+      } else {
+        navigate("/enter-pin");
+      }
     }
   }, [navigate]);
 
@@ -45,7 +49,9 @@ export const SignIn = () => {
         if (response.user) {
           localStorage.setItem("user", JSON.stringify(response.user));
         }
-        navigate("/dashboard");
+        // Mandatory Security PIN verification before dashboard access
+        sessionStorage.removeItem("isPinVerified");
+        navigate("/enter-pin");
       }
     } catch (err) {
       setError(
@@ -56,6 +62,7 @@ export const SignIn = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#070d1e] text-white flex flex-col justify-between relative overflow-hidden">

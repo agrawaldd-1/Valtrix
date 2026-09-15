@@ -150,6 +150,13 @@ export const Dashboard = () => {
       return;
     }
 
+    // Enforce mandatory Security PIN verification before dashboard access
+    const isPinVerified = sessionStorage.getItem('isPinVerified');
+    if (isPinVerified !== 'true') {
+      navigate('/enter-pin');
+      return;
+    }
+
     const cachedUser = localStorage.getItem('user');
     if (cachedUser) {
       try {
@@ -166,8 +173,15 @@ export const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('isPinVerified');
     navigate('/signin');
   };
+
+  const handleLock = () => {
+    sessionStorage.removeItem('isPinVerified');
+    navigate('/enter-pin');
+  };
+
 
   const handleCopy = (text, fieldName) => {
     if (!text) return;
@@ -342,12 +356,22 @@ export const Dashboard = () => {
           </div>
 
           <button
+            onClick={handleLock}
+            title="Lock Dashboard (Requires PIN)"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-500/40 rounded-lg transition-all cursor-pointer"
+          >
+            <Lock size={14} className="text-amber-400" />
+            <span className="hidden sm:inline">Lock</span>
+          </button>
+
+          <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 rounded-lg transition-all cursor-pointer"
           >
             <LogOut size={14} />
             <span className="hidden sm:inline">Sign Out</span>
           </button>
+
         </div>
       </header>
 

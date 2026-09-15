@@ -21,3 +21,17 @@ export const getProfile = async (token) => {
 
     return response.data;
 };
+
+export const verifyPin = async (pin, token) => {
+    const response = await api.post(
+        "/auth/verify-pin",
+        { pin },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    return response.data;
+};

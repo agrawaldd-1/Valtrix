@@ -174,6 +174,7 @@ export const loginUser = async (req, res) => {
                 accountNumber: user.accountNumber,
                 upiId: user.upiId,
                 balance: user.balance,
+                enterpin: user.enterpin,
             },
         });
 
@@ -202,6 +203,48 @@ export const getProfile = async (req, res) => {
         return res.status(200).json({
             success: true,
             user,
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
+
+export const verifyPin = async (req, res) => {
+    try {
+        const { pin } = req.body;
+
+        if (pin === undefined || pin === null || pin === "") {
+            return res.status(400).json({
+                success: false,
+                message: "PIN is required",
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        if (Number(user.enterpin) !== Number(pin)) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Security PIN",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "PIN verified successfully",
         });
 
     } catch (error) {
