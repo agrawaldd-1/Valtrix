@@ -2,7 +2,7 @@ import express from "express";
 import {
     sendMoney,
     getAllTransactions,
-} from "../controller/transaction.js";
+} from "../controller/transactionController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
