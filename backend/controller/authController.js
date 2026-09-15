@@ -1,22 +1,47 @@
 import { User } from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+
+const generateAccountNumber = () => {
+    return crypto
+        .randomInt(100000000000, 1000000000000)
+        .toString();
+};
 
 export const registerUser = async (req, res) => {
     try {
-        const { fullname, firstName, lastName, email, password, enterpin, paymentpin, pin, paymentPin } = req.body;
-        const resolvedFullname = fullname || `${firstName || ""} ${lastName || ""}`.trim();
-        const resolvedEnterpin = enterpin || pin || 0;
-        const resolvedPaymentpin = paymentpin || paymentPin || 0;
+        console.log("REGISTER BODY:", req.body);
+        const {
+            fullname,
+            firstName,
+            lastName,
+            email,
+            password,
+            pin,
+            paymentPin
+        } = req.body;
+        const enterpin = pin;
+        const paymentpin = paymentPin;
+        const resolvedFullname =
+            fullname || `${firstName || ""} ${lastName || ""}`.trim();
 
-        if (!resolvedFullname || !email || !password) {
+        if (
+            !resolvedFullname ||
+            !email ||
+            !password ||
+            enterpin === undefined ||
+            paymentpin === undefined
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
             });
         }
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({
+            email: email.toLowerCase().trim()
+        });
 
         if (existingUser) {
             return res.status(409).json({
@@ -25,14 +50,46 @@ export const registerUser = async (req, res) => {
             });
         }
 
+        let accountNumber;
+
+        while (!accountNumber) {
+            const generatedAccountNumber = generateAccountNumber();
+
+            const existingAccount = await User.findOne({
+                accountNumber: generatedAccountNumber
+            });
+
+            if (!existingAccount) {
+                accountNumber = generatedAccountNumber;
+            }
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const upiUsername = normalizedEmail.split("@")[0];
+        const upiId = `${upiUsername}@valutrix`;
+
+        const existingUpi = await User.findOne({
+            upiId
+        });
+
+        if (existingUpi) {
+            return res.status(409).json({
+                success: false,
+                message: "UPI ID already exists",
+            });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
             fullname: resolvedFullname,
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
-            enterpin: resolvedEnterpin,
-            paymentpin: resolvedPaymentpin,
+            enterpin,
+            paymentpin,
+            accountNumber,
+            upiId,
+            balance: 25000,
         });
 
         return res.status(201).json({
@@ -42,11 +99,19 @@ export const registerUser = async (req, res) => {
                 id: user._id,
                 fullname: user.fullname,
                 email: user.email,
+                accountNumber: user.accountNumber,
+                upiId: user.upiId,
+                balance: user.balance,
             },
         });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Internal server error" });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
     }
 };
 
@@ -63,7 +128,11 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        const user = await User.findOne({ email });
+        const normalizedEmail = email.toLowerCase().trim();
+
+        const user = await User.findOne({
+            email: normalizedEmail
+        });
 
         if (!user) {
             return res.status(401).json({
@@ -72,7 +141,10 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
 
         if (!isMatch) {
             return res.status(401).json({
@@ -99,8 +171,12 @@ export const loginUser = async (req, res) => {
                 id: user._id,
                 fullname: user.fullname,
                 email: user.email,
+                accountNumber: user.accountNumber,
+                upiId: user.upiId,
+                balance: user.balance,
             },
         });
+
     } catch (error) {
         console.error(error);
 
@@ -113,12 +189,21 @@ export const loginUser = async (req, res) => {
 
 export const getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("-password");
+        const user = await User.findById(req.user.id)
+            .select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
 
         return res.status(200).json({
             success: true,
             user,
         });
+
     } catch (error) {
         console.error(error);
 
