@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Send,
   ArrowLeft,
@@ -16,23 +16,23 @@ import {
   Wallet
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
+import MobileNav from '../components/MobileNav';
 import { getProfile } from '../services/authServices';
 import { sendMoneyApi } from '../services/transactionServices';
 
 export default function SendMoney() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Form State
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
+  const [recipient, setRecipient] = useState(location.state?.recipient || location.state?.to || '');
+  const [amount, setAmount] = useState(location.state?.amount ? String(location.state.amount) : '');
   const [paymentPin, setPaymentPin] = useState('');
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(location.state?.note || '');
   const [showPin, setShowPin] = useState(false);
 
-  // Status State
   const [errorMsg, setErrorMsg] = useState('');
   const [txSuccessData, setTxSuccessData] = useState(null);
 
@@ -58,7 +58,6 @@ export default function SendMoney() {
       }
     }
 
-    // Fetch fresh user profile for real-time balance
     getProfile(token)
       .then((res) => {
         if (res.user) {
@@ -167,8 +166,8 @@ export default function SendMoney() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070d1e] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Top Navbar */}
+    <div className="min-h-screen bg-[#070d1e] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white pb-16 lg:pb-0">
+      
       <header className="sticky top-0 z-40 bg-[#0a1228]/80 backdrop-blur-md border-b border-blue-500/15 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
@@ -184,7 +183,7 @@ export default function SendMoney() {
           </div>
         </div>
 
-        {/* Live Balance Pill */}
+        
         <div className="flex items-center gap-3">
           <div className="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30 rounded-xl px-3.5 py-1.5 flex items-center gap-2 text-xs">
             <Wallet size={14} className="text-blue-400" />
@@ -200,15 +199,14 @@ export default function SendMoney() {
         </div>
       </header>
 
-      {/* Main Container */}
+      
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8">
         <div className="w-full max-w-lg">
           {txSuccessData ? (
-            /* =================== SUCCESS RECEIPT SCREEN =================== */
             <div className="bg-[#0e172e] rounded-3xl border border-emerald-500/30 p-7 sm:p-8 text-white shadow-2xl shadow-emerald-500/10 relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
               <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Animated Checkmark Badge */}
+              
               <div className="flex flex-col items-center text-center mb-6">
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-emerald-400 mb-3 shadow-lg shadow-emerald-500/30">
                   <CheckCircle2 size={36} className="animate-bounce" />
@@ -224,7 +222,7 @@ export default function SendMoney() {
                 </p>
               </div>
 
-              {/* Transaction Receipt Box */}
+              
               <div className="bg-slate-900/70 rounded-2xl border border-white/10 p-4 sm:p-5 space-y-3 text-xs mb-6 font-sans">
                 <div className="flex items-center justify-between pb-2.5 border-b border-white/5">
                   <span className="text-slate-400">Transaction ID</span>
@@ -265,7 +263,7 @@ export default function SendMoney() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={handleReset}
@@ -282,11 +280,10 @@ export default function SendMoney() {
               </div>
             </div>
           ) : (
-            /* =================== SEND MONEY FORM =================== */
             <div className="bg-[#0e172e] rounded-3xl border border-blue-500/25 p-7 sm:p-9 text-white shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-56 h-56 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Header */}
+              
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-md">
                   <Send size={20} />
@@ -301,7 +298,7 @@ export default function SendMoney() {
                 </div>
               </div>
 
-              {/* Error Banner */}
+              
               {errorMsg && (
                 <div className="mb-5 p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2.5 animate-in fade-in">
                   <AlertCircle size={17} className="shrink-0 text-rose-400" />
@@ -310,7 +307,7 @@ export default function SendMoney() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Recipient Input */}
+                
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Recipient UPI ID, Account, or Email
@@ -333,7 +330,7 @@ export default function SendMoney() {
                   </p>
                 </div>
 
-                {/* Amount Input */}
+                
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-slate-300">Amount (₹)</label>
@@ -364,7 +361,7 @@ export default function SendMoney() {
                     />
                   </div>
 
-                  {/* Quick Amount Chips */}
+                  
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                     {[500, 1000, 2000, 5000].map((val) => (
                       <button
@@ -379,7 +376,7 @@ export default function SendMoney() {
                   </div>
                 </div>
 
-                {/* Optional Note */}
+                
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Transfer Note <span className="text-slate-500 font-normal">(Optional)</span>
@@ -393,7 +390,7 @@ export default function SendMoney() {
                   />
                 </div>
 
-                {/* 4-Digit Payment PIN */}
+                
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1.5">
@@ -427,13 +424,13 @@ export default function SendMoney() {
                   </div>
                 </div>
 
-                {/* Security Guarantee */}
+                
                 <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-white/5 p-3 rounded-xl border border-white/5">
                   <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
                   <span>256-Bit SSL Encrypted. Authenticated with your personal Payment PIN.</span>
                 </div>
 
-                {/* Submit Button */}
+                
                 <button
                   type="submit"
                   disabled={submitting}
@@ -456,6 +453,7 @@ export default function SendMoney() {
           )}
         </div>
       </main>
+      <MobileNav active="send" />
     </div>
   );
 }

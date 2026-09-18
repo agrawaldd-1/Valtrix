@@ -23,9 +23,8 @@ import {
   Home,
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import MobileNav from '../components/MobileNav';
 import { getAllTransactionsApi, fetchTransactionApi } from '../services/transactionServices.js';
-
-// ─── helpers ────────────────────────────────────────────────────────────────
 
 const formatCurrency = (val) =>
   '\u20b9' + Number(val ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -74,8 +73,6 @@ const mapTx = (tx, currentUserId) => {
   };
 };
 
-// ─── Detail Drawer ──────────────────────────────────────────────────────────
-
 function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
   const [copied, setCopied] = useState(null);
 
@@ -105,7 +102,7 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
 
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-[#0b1329] border-l border-blue-500/20 z-50 flex flex-col shadow-2xl overflow-y-auto" style={{ animation: 'slideInRight 0.25s ease-out' }}>
 
-        {/* Header */}
+        
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 sticky top-0 bg-[#0b1329] z-10">
           <div>
             <h2 className="text-base font-bold text-white">Transaction Details</h2>
@@ -124,7 +121,7 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
         ) : (
           <div className="flex-1 px-6 py-6 space-y-5">
 
-            {/* Amount Hero */}
+            
             <div className={`rounded-2xl p-6 text-center border ${tx?.isDebit ? 'bg-rose-500/8 border-rose-500/20' : 'bg-emerald-500/8 border-emerald-500/20'}`}>
               <div className={`text-4xl font-black font-mono mb-1 ${tx?.isDebit ? 'text-rose-400' : 'text-emerald-400'}`}>
                 {tx?.formattedAmount}
@@ -136,7 +133,7 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
               </div>
             </div>
 
-            {/* Transaction ID */}
+            
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <Hash size={13} className="text-slate-400" />
@@ -148,7 +145,7 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
               </div>
             </div>
 
-            {/* Timestamp */}
+            
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar size={13} className="text-slate-400" />
@@ -157,7 +154,7 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
               <span className="text-sm text-white font-medium">{formatDate(tx?.createdAt)}</span>
             </div>
 
-            {/* Sender */}
+            
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <div className="flex items-center gap-2 mb-3">
                 <ArrowUpRight size={13} className="text-rose-400" />
@@ -172,14 +169,14 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
               ) : <span className="text-sm text-slate-500">{'\u2014'}</span>}
             </div>
 
-            {/* Arrow divider */}
+            
             <div className="flex justify-center">
               <div className="w-8 h-8 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
                 <ArrowDownLeft size={14} className="text-blue-400" />
               </div>
             </div>
 
-            {/* Receiver */}
+            
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <div className="flex items-center gap-2 mb-3">
                 <ArrowDownLeft size={13} className="text-emerald-400" />
@@ -194,7 +191,7 @@ function TransactionDrawer({ tx, detailData, detailLoading, onClose }) {
               ) : <span className="text-sm text-slate-500">{'\u2014'}</span>}
             </div>
 
-            {/* Security Note */}
+            
             <div className="flex items-start gap-3 bg-blue-500/8 border border-blue-500/20 rounded-xl p-4">
               <ShieldCheck size={16} className="text-blue-400 shrink-0 mt-0.5" />
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -227,8 +224,6 @@ function InfoRow({ label, value, mono, highlight, onCopy, copied }) {
     </div>
   );
 }
-
-// ─── Main Page ──────────────────────────────────────────────────────────────
 
 export default function Transactions() {
   const navigate = useNavigate();
@@ -312,7 +307,7 @@ export default function Transactions() {
   return (
     <div className="min-h-screen bg-[#070d1e] text-white font-sans flex flex-col">
 
-      {/* ── Navbar ── */}
+      
       <header className="bg-[#0b1329] border-b border-blue-500/20 px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
         <Link to="/" className="flex items-center">
           <Logo lightText={true} />
@@ -355,10 +350,10 @@ export default function Transactions() {
         </div>
       </header>
 
-      {/* ── Page Body ── */}
+      
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
 
-        {/* Breadcrumb */}
+        
         <nav className="flex items-center gap-2 text-xs text-slate-500">
           <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1 hover:text-slate-300 transition-colors cursor-pointer">
             <Home size={12} />
@@ -368,7 +363,7 @@ export default function Transactions() {
           <span className="text-slate-300 font-medium">All Transactions</span>
         </nav>
 
-        {/* Page Title */}
+        
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
@@ -391,7 +386,7 @@ export default function Transactions() {
           </button>
         </div>
 
-        {/* Summary Cards */}
+        
         {!loading && transactions.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-[#0b1329] rounded-2xl p-5 border border-blue-500/20">
@@ -418,7 +413,7 @@ export default function Transactions() {
           </div>
         )}
 
-        {/* Search & Filters */}
+        
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex items-center gap-2 bg-[#0b1329] border border-blue-500/20 rounded-xl px-4 py-2.5 flex-1">
             <Search size={16} className="text-slate-400 shrink-0" />
@@ -459,7 +454,7 @@ export default function Transactions() {
           </div>
         </div>
 
-        {/* Transaction List */}
+        
         <div className="bg-[#0b1329] rounded-2xl border border-blue-500/20 overflow-hidden">
           {loading ? (
             <div className="p-16 flex flex-col items-center gap-4 text-slate-400">
@@ -487,7 +482,7 @@ export default function Transactions() {
             </div>
           ) : (
             <div className="divide-y divide-white/5">
-              {/* Table Header */}
+              
               <div className="grid grid-cols-12 gap-4 px-5 py-3 text-[11px] uppercase tracking-wider text-slate-500 font-semibold bg-white/3">
                 <div className="col-span-5">Party</div>
                 <div className="col-span-3 hidden sm:block">Transaction ID</div>
@@ -504,7 +499,7 @@ export default function Transactions() {
                     onClick={() => openDetail(tx)}
                     className="grid grid-cols-12 gap-4 px-5 py-4 hover:bg-white/4 transition-all cursor-pointer group items-center"
                   >
-                    {/* Avatar + Name */}
+                    
                     <div className="col-span-7 sm:col-span-5 flex items-center gap-3 min-w-0">
                       <div className={'w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ' + (tx.isDebit ? 'bg-rose-500/15 text-rose-400' : 'bg-emerald-500/15 text-emerald-400')}>
                         {tx.initials}
@@ -521,17 +516,17 @@ export default function Transactions() {
                       </div>
                     </div>
 
-                    {/* Txn ID */}
+                    
                     <div className="col-span-3 hidden sm:flex items-center">
                       <span className="text-xs font-mono text-slate-500 truncate">{tx.transactionId}</span>
                     </div>
 
-                    {/* Date */}
+                    
                     <div className="col-span-2 hidden sm:flex items-center">
                       <span className="text-xs text-slate-400">{formatDateShort(tx.createdAt)}</span>
                     </div>
 
-                    {/* Amount */}
+                    
                     <div className="col-span-5 sm:col-span-2 flex items-center justify-end gap-2">
                       <span className={'text-sm font-bold font-mono ' + (tx.isDebit ? 'text-rose-400' : 'text-emerald-400')}>
                         {tx.formattedAmount}
@@ -553,7 +548,7 @@ export default function Transactions() {
         )}
       </main>
 
-      {/* ── Detail Drawer ── */}
+      
       {selectedTx && (
         <TransactionDrawer
           tx={selectedTx}
