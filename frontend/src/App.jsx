@@ -13,6 +13,9 @@ import EnterPin from './pages/EnterPin';
 import Dashboard from './pages/Dashboard';
 import SendMoney from './pages/SendMoney';
 import Transactions from './pages/Transactions';
+import ScanPay from './pages/ScanPay';
+import ReceiveMoney from './pages/ReceiveMoney';
+import Profile from './pages/Profile';
 
 function LandingPage() {
   const [demoModalOpen, setDemoModalOpen] = useState(false);
@@ -48,7 +51,12 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/send-money" element={<SendMoney />} />
       <Route path="/send" element={<SendMoney />} />
+      <Route path="/scan-pay" element={<ScanPay />} />
+      <Route path="/scan" element={<ScanPay />} />
+      <Route path="/receive-money" element={<ReceiveMoney />} />
+      <Route path="/receive" element={<ReceiveMoney />} />
       <Route path="/transactions" element={<Transactions />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }
